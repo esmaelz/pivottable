@@ -6,7 +6,7 @@ callWithJQuery = (pivotModule) ->
     # Plain browser env
     else
         pivotModule jQuery
-        
+
 callWithJQuery ($) ->
 
     ###
@@ -23,8 +23,8 @@ callWithJQuery ($) ->
         return x1 + x2
 
     numberFormat = (opts) ->
-        defaults = 
-            digitsAfterDecimal: 2, scaler: 1, 
+        defaults =
+            digitsAfterDecimal: 2, scaler: 1,
             thousandsSep: ",", decimalSep: "."
             prefix: "", suffix: ""
             showZero: false
@@ -68,6 +68,18 @@ callWithJQuery ($) ->
             format: formatter
             numInputs: if attr? then 0 else 1
 
+        mSum: (formatter=usFmt) -> ([attr, a2]) -> (data, rowKey, colKey) ->
+            sum: 0
+            push: (record) ->
+                console.log "sum: #{attr} #{a2}"
+                console.log data
+                console.log rowKey
+                console.log colKey
+                @sum += parseFloat(record[attr]) if not isNaN parseFloat(record[attr])
+            value: -> @sum
+            format: formatter
+            numInputs: if attr? then 0 else 1
+
         min: (formatter=usFmt) -> ([attr]) -> (data, rowKey, colKey) ->
             val: null
             push: (record) ->
@@ -79,7 +91,7 @@ callWithJQuery ($) ->
 
         max: (formatter=usFmt) -> ([attr]) -> (data, rowKey, colKey) ->
             val: null
-            push: (record) -> 
+            push: (record) ->
                 x = parseFloat(record[attr])
                 if not isNaN x then @val = Math.max(x, @val ? x)
             value: -> @val
@@ -130,11 +142,12 @@ callWithJQuery ($) ->
             numInputs: wrapped(x...)().numInputs
 
     #default aggregators & renderers use US naming and number formatting
-    aggregators = do (tpl = aggregatorTemplates) -> 
+    aggregators = do (tpl = aggregatorTemplates) ->
         "Count":                tpl.count(usFmtInt)
         "Count Unique Values":  tpl.countUnique(usFmtInt)
         "List Unique Values":   tpl.listUnique(", ")
         "Sum":                  tpl.sum(usFmt)
+        "mSum":                 tpl.mSum(usFmt)
         "Integer Sum":          tpl.sum(usFmtInt)
         "Average":              tpl.average(usFmt)
         "Minimum":              tpl.min(usFmt)
@@ -156,11 +169,11 @@ callWithJQuery ($) ->
         "Row Heatmap":    (pvtData, opts) -> $(pivotTableRenderer(pvtData, opts)).heatmap("rowheatmap")
         "Col Heatmap":    (pvtData, opts) -> $(pivotTableRenderer(pvtData, opts)).heatmap("colheatmap")
 
-    locales = 
-        en: 
+    locales =
+        en:
             aggregators: aggregators
             renderers: renderers
-            localeStrings: 
+            localeStrings:
                 renderError: "An error occurred rendering the PivotTable results."
                 computeError: "An error occurred computing the PivotTable results."
                 uiRenderError: "An error occurred rendering the PivotTable UI."
@@ -221,7 +234,7 @@ callWithJQuery ($) ->
                     return (if a1 > b1 then 1 else -1)
         a.length - b.length
 
-    sortAs = (order) -> 
+    sortAs = (order) ->
         mapping = {}
         for i, x of order
             mapping[x] = i
@@ -238,7 +251,7 @@ callWithJQuery ($) ->
     getSort = (sorters, attr) ->
         sort = sorters(attr)
         if $.isFunction(sort)
-            return sort 
+            return sort
         else
             return naturalSort
 
@@ -271,7 +284,7 @@ callWithJQuery ($) ->
             if $.isEmptyObject derivedAttributes
                 addRecord = f
             else
-                addRecord = (record) -> 
+                addRecord = (record) ->
                     record[k] = v(record) ? record[k] for k, v of derivedAttributes
                     f(record)
 
@@ -302,9 +315,9 @@ callWithJQuery ($) ->
             PivotData.forEachRecord input, {}, (record) -> result.push record
             return result
 
-        arrSort: (attrs) => 
+        arrSort: (attrs) =>
             sortersArr = (getSort(@sorters, a) for a in attrs)
-            (a,b) -> 
+            (a,b) ->
                 for own i, sorter of sortersArr
                     comparison = sorter(a[i], b[i])
                     return comparison if comparison != 0
@@ -327,7 +340,7 @@ callWithJQuery ($) ->
         processRecord: (record) -> #this code is called in a tight loop
             colKey = []
             rowKey = []
-            colKey.push record[x] ? "null" for x in @colAttrs 
+            colKey.push record[x] ? "null" for x in @colAttrs
             rowKey.push record[x] ? "null" for x in @rowAttrs
             flatRowKey = rowKey.join(String.fromCharCode(0))
             flatColKey = colKey.join(String.fromCharCode(0))
@@ -386,6 +399,9 @@ callWithJQuery ($) ->
         rowAttrs = pivotData.rowAttrs
         rowKeys = pivotData.getRowKeys()
         colKeys = pivotData.getColKeys()
+        valAttrs = pivotData.valAttrs
+        console.log valAttrs
+        console.log valAttrs.length
 
         #now actually build the output
         result = document.createElement("table")
@@ -410,16 +426,18 @@ callWithJQuery ($) ->
             return len
 
         #the first few rows are for col headers
+        console.log 'the first few rows are for col headers'
         for own j, c of colAttrs
             tr = document.createElement("tr")
             if parseInt(j) == 0 and rowAttrs.length != 0
                 th = document.createElement("th")
                 th.setAttribute("colspan", rowAttrs.length)
-                th.setAttribute("rowspan", colAttrs.length)
+                th.setAttribute("rowspan", (colAttrs.length + 1))
                 tr.appendChild th
             th = document.createElement("th")
             th.className = "pvtAxisLabel"
             th.textContent = c
+            console.log c
             tr.appendChild th
             for own i, colKey of colKeys
                 x = spanSize(colKeys, parseInt(i), parseInt(j))
@@ -427,26 +445,53 @@ callWithJQuery ($) ->
                     th = document.createElement("th")
                     th.className = "pvtColLabel"
                     th.textContent = colKey[j]
-                    th.setAttribute("colspan", x)
-                    if parseInt(j) == colAttrs.length-1 and rowAttrs.length != 0
+                    console.log "  #{colKey[j]}"
+                    th.setAttribute("colspan", (x * valAttrs.length))
+                    if parseInt(j) == colAttrs.length-1 and rowAttrs.length != 0 and valAttrs.length == 0
                         th.setAttribute("rowspan", 2)
                     tr.appendChild th
+            #Add measures
+            if parseInt(j) == (colAttrs.length - 1) and valAttrs.length != 0
+                result.appendChild tr
+                console.log 'Criar measures'
+                tr = document.createElement("tr")
+                th = document.createElement("th")
+                th.className = "pvtAxisLabel"
+                th.textContent = 'measures'
+                tr.appendChild th
+                for own i, colKey of colKeys
+                    #x = spanSize(colKeys, parseInt(i), parseInt(j))
+                    #if x != -1
+                    for own m, valAttr of valAttrs
+                        th = document.createElement("th")
+                        th.className = "pvtColLabel"
+                        th.textContent = valAttr
+                        th.setAttribute("colspan", 1)
+                        th.setAttribute("rowspan", 2)
+                        tr.appendChild th
+
             if parseInt(j) == 0
                 th = document.createElement("th")
                 th.className = "pvtTotalLabel"
                 th.innerHTML = opts.localeStrings.totals
-                th.setAttribute("rowspan", colAttrs.length + (if rowAttrs.length ==0 then 0 else 1))
+                th.setAttribute("rowspan", colAttrs.length + (if rowAttrs.length ==0 then 0 else 1) + (if valAttrs.length != 0 then 1 else 0))
                 tr.appendChild th
+
             result.appendChild tr
 
+        console.log 'fim first'
+
+
         #then a row for row header headers
+        console.log '#then a row for row header headers'
         if rowAttrs.length !=0
             tr = document.createElement("tr")
             for own i, r of rowAttrs
                 th = document.createElement("th")
                 th.className = "pvtAxisLabel"
                 th.textContent = r
-                tr.appendChild th 
+                console.log "  #{r}"
+                tr.appendChild th
             th = document.createElement("th")
             if colAttrs.length ==0
                 th.className = "pvtTotalLabel"
@@ -454,7 +499,9 @@ callWithJQuery ($) ->
             tr.appendChild th
             result.appendChild tr
 
+        console.log 'fim'
         #now the actual data rows, with their row headers and totals
+        console.log '#now the actual data rows, with their row headers and totals'
         for own i, rowKey of rowKeys
             tr = document.createElement("tr")
             for own j, txt of rowKey
@@ -463,24 +510,32 @@ callWithJQuery ($) ->
                     th = document.createElement("th")
                     th.className = "pvtRowLabel"
                     th.textContent = txt
+                    console.log "  #{txt}"
                     th.setAttribute("rowspan", x)
                     if parseInt(j) == rowAttrs.length-1 and colAttrs.length !=0
                         th.setAttribute("colspan",2)
                     tr.appendChild th
+            console.log '#this is the tight loop'
             for own j, colKey of colKeys #this is the tight loop
                 aggregator = pivotData.getAggregator(rowKey, colKey)
+                console.log "getAggregator: #{rowKey}  #{colKey}"
+                console.log aggregator
                 val = aggregator.value()
-                td = document.createElement("td")
-                td.className = "pvtVal row#{i} col#{j}"
-                td.textContent = aggregator.format(val)
-                td.setAttribute("data-value", val)
-                tr.appendChild td
+                for own m, valAttr of valAttrs
+                    td = document.createElement("td")
+                    td.className = "pvtVal row#{i} col#{j}"
+                    td.textContent = aggregator.format(val)
+                    console.log "  #{td.textContent}"
+                    td.setAttribute("data-value", val)
+                    tr.appendChild td
 
+            console.log 'fim #this is the tight loop'
             totalAggregator = pivotData.getAggregator(rowKey, [])
             val = totalAggregator.value()
             td = document.createElement("td")
             td.className = "pvtTotal rowTotal"
             td.textContent = totalAggregator.format(val)
+            console.log "total:#{td.textContent}"
             td.setAttribute("data-value", val)
             td.setAttribute("data-for", "row"+i)
             tr.appendChild td
@@ -517,6 +572,8 @@ callWithJQuery ($) ->
 
         return result
 
+
+
     ###
     Pivot Table core: create PivotData object and call Renderer on it
     ###
@@ -529,7 +586,7 @@ callWithJQuery ($) ->
             filter: -> true
             aggregator: aggregatorTemplates.count()()
             aggregatorName: "Count"
-            sorters: -> 
+            sorters: ->
             derivedAttributes: {},
             renderer: pivotTableRenderer
             rendererOptions: null
@@ -548,7 +605,7 @@ callWithJQuery ($) ->
         catch e
             console.error(e.stack) if console?
             result = $("<span>").html opts.localeStrings.computeError
-        
+
         x = this[0]
         x.removeChild(x.lastChild) while x.hasChildNodes()
         return @append result
@@ -575,7 +632,7 @@ callWithJQuery ($) ->
             rendererOptions: localeStrings: locales[locale].localeStrings
             onRefresh: null
             filter: -> true
-            sorters: -> 
+            sorters: ->
             localeStrings: locales[locale].localeStrings
 
         existingOpts = @data "pivotUIOptions"
@@ -953,5 +1010,3 @@ callWithJQuery ($) ->
         barcharter ".pvtTotal.colTotal"
 
         return this
-
-
