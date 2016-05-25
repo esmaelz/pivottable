@@ -68,15 +68,33 @@ callWithJQuery ($) ->
             format: formatter
             numInputs: if attr? then 0 else 1
 
-        mSum: (formatter=usFmt) -> ([attr, a2]) -> (data, rowKey, colKey) ->
-            sum: 0
+        mSum: (formatter=usFmt) -> (_arg, _func) -> (data, rowKey, colKey) ->
+            _summedFacts = {}
+            _i = 0
+            _count = 0
+
+            while _i < _arg.length
+              _summedFacts[_arg[_i]] = 0
+              _i++
             push: (record) ->
-                console.log "sum: #{attr} #{a2}"
-                console.log data
-                console.log rowKey
-                console.log colKey
-                @sum += parseFloat(record[attr]) if not isNaN parseFloat(record[attr])
-            value: -> @sum
+                _i = 0
+                _count++
+
+                while _i < _arg.length
+                  _summedFacts[_arg[_i]] += parseFloat(record[_arg[_i]]) unless isNaN(parseFloat(record[_arg[_i]]))
+                  _i++
+                return
+
+            multivalue: ->
+                _i = 0
+                while _i < _func.length
+                    if _func[_i] == 'avg'
+                        _summedFacts[_arg[_i]] = _summedFacts[_arg[_i]]/ _count
+                    _i++
+                _summedFacts
+            value: ->
+                attr = _arg[0]
+                _summedFacts[_arg[0]]
             format: formatter
             numInputs: if attr? then 0 else 1
 
@@ -105,6 +123,7 @@ callWithJQuery ($) ->
                 if not isNaN parseFloat(record[attr])
                     @sum += parseFloat(record[attr])
                     @len++
+
             value: -> @sum/@len
             format: formatter
             numInputs: if attr? then 0 else 1
@@ -519,12 +538,12 @@ callWithJQuery ($) ->
             for own j, colKey of colKeys #this is the tight loop
                 aggregator = pivotData.getAggregator(rowKey, colKey)
                 console.log "getAggregator: #{rowKey}  #{colKey}"
-                console.log aggregator
                 val = aggregator.value()
+                multiValues = if aggregator.multivalue then aggregator.multivalue() else undefined
                 for own m, valAttr of valAttrs
                     td = document.createElement("td")
                     td.className = "pvtVal row#{i} col#{j}"
-                    td.textContent = aggregator.format(val)
+                    if multiValues then td.textContent = aggregator.format(multiValues[valAttr]) else td.textContent = ''
                     console.log "  #{td.textContent}"
                     td.setAttribute("data-value", val)
                     tr.appendChild td
