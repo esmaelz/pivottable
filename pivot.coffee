@@ -68,7 +68,7 @@ callWithJQuery ($) ->
             format: formatter
             numInputs: if attr? then 0 else 1
 
-        mSum: (formatter=usFmt) -> (_arg, _func) -> (data, rowKey, colKey) ->
+        sAggregator: (formatter=usFmt) -> (_arg, _func) -> (data, rowKey, colKey) ->
             _summedFacts = {}
             _i = 0
             _count = 0
@@ -166,7 +166,7 @@ callWithJQuery ($) ->
         "Count Unique Values":  tpl.countUnique(usFmtInt)
         "List Unique Values":   tpl.listUnique(", ")
         "Sum":                  tpl.sum(usFmt)
-        "mSum":                 tpl.mSum(usFmt)
+        "sAggregator":          tpl.sAggregator(usFmt)
         "Integer Sum":          tpl.sum(usFmtInt)
         "Average":              tpl.average(usFmt)
         "Minimum":              tpl.min(usFmt)
@@ -512,10 +512,17 @@ callWithJQuery ($) ->
                 console.log "  #{r}"
                 tr.appendChild th
             th = document.createElement("th")
+            # if colAttrs.length ==0
+            #     th.className = "pvtTotalLabel"
+            #     th.innerHTML = opts.localeStrings.totals
             if colAttrs.length ==0
-                th.className = "pvtTotalLabel"
-                th.innerHTML = opts.localeStrings.totals
+                for v, valAttr of valAttrs
+                    th = document.createElement("th")
+                    th.className = "pvtTotalLabel"
+                    th.innerHTML = valAttr
+                    tr.appendChild th
             tr.appendChild th
+
             result.appendChild tr
 
         console.log 'fim'
@@ -537,9 +544,9 @@ callWithJQuery ($) ->
             console.log '#this is the tight loop'
             for own j, colKey of colKeys #this is the tight loop
                 aggregator = pivotData.getAggregator(rowKey, colKey)
-                console.log "getAggregator: #{rowKey}  #{colKey}"
                 val = aggregator.value()
                 multiValues = if aggregator.multivalue then aggregator.multivalue() else undefined
+                console.log 'init multivalue'
                 for own m, valAttr of valAttrs
                     td = document.createElement("td")
                     td.className = "pvtVal row#{i} col#{j}"
@@ -547,17 +554,17 @@ callWithJQuery ($) ->
                     console.log "  #{td.textContent}"
                     td.setAttribute("data-value", val)
                     tr.appendChild td
+                console.log 'fim multivalue'
 
-            console.log 'fim #this is the tight loop'
             totalAggregator = pivotData.getAggregator(rowKey, [])
-            val = totalAggregator.value()
-            td = document.createElement("td")
-            td.className = "pvtTotal rowTotal"
-            td.textContent = totalAggregator.format(val)
-            console.log "total:#{td.textContent}"
-            td.setAttribute("data-value", val)
-            td.setAttribute("data-for", "row"+i)
-            tr.appendChild td
+            multiValues = if totalAggregator.multivalue then totalAggregator.multivalue() else undefined
+            for own m, valAttr of valAttrs
+                td = document.createElement("td")
+                td.className = "pvtTotal rowTotal"
+                if multiValues then td.textContent = totalAggregator.format(multiValues[valAttr]) else td.textContent = ''
+                console.log "  #{td.textContent}"
+                td.setAttribute("data-value", val)
+                tr.appendChild td
             result.appendChild tr
 
         #finally, the row for col totals, and a grand total
@@ -569,20 +576,24 @@ callWithJQuery ($) ->
         tr.appendChild th
         for own j, colKey of colKeys
             totalAggregator = pivotData.getAggregator([], colKey)
-            val = totalAggregator.value()
-            td = document.createElement("td")
-            td.className = "pvtTotal colTotal"
-            td.textContent = totalAggregator.format(val)
-            td.setAttribute("data-value", val)
-            td.setAttribute("data-for", "col"+j)
-            tr.appendChild td
+            multiValues = if totalAggregator.multivalue then totalAggregator.multivalue() else undefined
+            for own m, valAttr of valAttrs
+                td = document.createElement("td")
+                td.className = "pvtTotal colTotal"
+                val = if multiValues then totalAggregator.format(multiValues[valAttr]) else ''
+                td.textContent = val
+                td.setAttribute("data-value", val)
+                td.setAttribute("data-for", "col"+j)
+                tr.appendChild td
         totalAggregator = pivotData.getAggregator([], [])
-        val = totalAggregator.value()
-        td = document.createElement("td")
-        td.className = "pvtGrandTotal"
-        td.textContent = totalAggregator.format(val)
-        td.setAttribute("data-value", val)
-        tr.appendChild td
+        multiValues = if totalAggregator.multivalue then totalAggregator.multivalue() else undefined
+        for own m, valAttr of valAttrs
+            td = document.createElement("td")
+            td.className = "pvtGrandTotal"
+            val = if multiValues then totalAggregator.format(multiValues[valAttr]) else ''
+            td.textContent = val
+            td.setAttribute("data-value", val)
+            tr.appendChild td
         result.appendChild tr
 
         #squirrel this away for later
