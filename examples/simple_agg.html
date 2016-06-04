@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Pivot Demo</title>
-        <!-- external libs from cdnjs -->
-        <script type="text/javascript" src="jquery.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<head>
+    <title>Pivot Demo</title>
+    <!-- external libs from cdnjs -->
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
-        <!-- PivotTable.js libs from ../dist -->
-        <link rel="stylesheet" type="text/css" href="../dist/pivot.css">
-        <script type="text/javascript" src="../dist/pivot.js"></script>
-        <style>
-            body {font-family: Verdana;}
-        </style>
+    <!-- PivotTable.js libs from ../dist -->
+    <link rel="stylesheet" type="text/css" href="../dist/pivot.css">
+    <script type="text/javascript" src="../dist/pivot.js"></script>
+    <style>
+    body {font-family: Verdana;}
+    </style>
 
-        <!-- for examples only! script to show code to user -->
-        <script type="text/javascript" src="show_code.js"></script>
-    </head>
-    <body>
-        <script type="text/javascript">
+    <!-- for examples only! script to show code to user -->
+    <script type="text/javascript" src="show_code.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
     // This example shows pivot() with a sum() aggregator
     // with custom formatting (no digits after decimal)
 
@@ -27,21 +27,34 @@
         var numberFormat = $.pivotUtilities.numberFormat;
         var intFormat = numberFormat({digitsAfterDecimal: 2});
 
-        $("#output").pivot(
-            [
-                {color: "blue", shape: "circle", go: "GA", value: 29, profit: 6},
-                {color: "red", shape: "triangle", go: "GA", value: 2, profit: 20},
-                {color: "blue", shape: "circle", go: "GA", value: 3, profit: 1},
-                {color: "red", shape: "triangle", go: "GB",value: 4, profit: 30}
-            ],
-            {
-                rows: ["color"],
-                // cols: ["shape", "go"],
-                aggregator: sAggregator(intFormat)(["value", "profit"], ["sum", "avg"]),
-                vals: ["value", "profit"]
-            }
-        );
-     });
+        // $.get("http://localhost:9000/api/budgets/4/resumo?token=0ee2918a5d8ff63aaea6136a",function(data){
+            $("#output").pivot(
+                [
+                    // {color: "blue", shape: "circle", go: "GA", value: 29, profit: 6},
+                    // {color: "red", shape: "triangle", go: "GA", value: 2, profit: 20},
+                    // {color: "blue", shape: "circle", go: "GA", value: 3, profit: 1},
+                    // {color: "red", shape: "triangle", go: "GB",value: 4, profit: 30}
+                    {color: "blue", shape: "circle", go: "g16", value: 29, profit: 0},
+                    {color: "blue", shape: "circle", go: "GA", value: 0, profit: 10}
+                ],
+                {
+                    rows: ["color"],
+                    // cols: ["shape", "go"],
+                    aggregator: sAggregator(intFormat)(["value", "profit"],["sum", "sum"]),
+                    vals: ["value", "profit"],
+                }
+            );
+            // var sAggregator = $.pivotUtilities.aggregatorTemplates.sAggregator;
+            // var numberFormat = $.pivotUtilities.numberFormat({digitsAfterDecimal: 2});
+            // $("#output").pivot(data.itens,
+            //     {
+            //         rows: ["atribuido", "item"],
+            //         // cols: [],
+            //         vals: ["budget_volume", "valor_venda"],
+            //         aggregator: sAggregator(numberFormat)(["budget_volume", "valor_venda"],["sum", "sum"])
+            //     });
+            // });
+        });
         </script>
 
         <p><a href="index.html">&laquo; back to examples</a></p>
@@ -49,4 +62,4 @@
         <div id="output" style="margin: 30px;"></div>
 
     </body>
-</html>
+    </html>

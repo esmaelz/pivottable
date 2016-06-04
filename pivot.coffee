@@ -419,8 +419,6 @@ callWithJQuery ($) ->
         rowKeys = pivotData.getRowKeys()
         colKeys = pivotData.getColKeys()
         valAttrs = pivotData.valAttrs
-        console.log valAttrs
-        console.log valAttrs.length
 
         #now actually build the output
         result = document.createElement("table")
@@ -445,7 +443,6 @@ callWithJQuery ($) ->
             return len
 
         #the first few rows are for col headers
-        console.log 'the first few rows are for col headers'
         for own j, c of colAttrs
             tr = document.createElement("tr")
             if parseInt(j) == 0 and rowAttrs.length != 0
@@ -456,7 +453,6 @@ callWithJQuery ($) ->
             th = document.createElement("th")
             th.className = "pvtAxisLabel"
             th.textContent = c
-            console.log c
             tr.appendChild th
             for own i, colKey of colKeys
                 x = spanSize(colKeys, parseInt(i), parseInt(j))
@@ -464,7 +460,6 @@ callWithJQuery ($) ->
                     th = document.createElement("th")
                     th.className = "pvtColLabel"
                     th.textContent = colKey[j]
-                    console.log "  #{colKey[j]}"
                     th.setAttribute("colspan", (x * valAttrs.length))
                     if parseInt(j) == colAttrs.length-1 and rowAttrs.length != 0 and valAttrs.length == 0
                         th.setAttribute("rowspan", 2)
@@ -472,7 +467,6 @@ callWithJQuery ($) ->
             #Add measures
             if parseInt(j) == (colAttrs.length - 1) and valAttrs.length != 0
                 result.appendChild tr
-                console.log 'Criar measures'
                 tr = document.createElement("tr")
                 th = document.createElement("th")
                 th.className = "pvtAxisLabel"
@@ -498,36 +492,27 @@ callWithJQuery ($) ->
 
             result.appendChild tr
 
-        console.log 'fim first'
-
-
         #then a row for row header headers
-        console.log '#then a row for row header headers'
         if rowAttrs.length !=0
             tr = document.createElement("tr")
             for own i, r of rowAttrs
                 th = document.createElement("th")
                 th.className = "pvtAxisLabel"
                 th.textContent = r
-                console.log "  #{r}"
                 tr.appendChild th
             th = document.createElement("th")
-            # if colAttrs.length ==0
-            #     th.className = "pvtTotalLabel"
-            #     th.innerHTML = opts.localeStrings.totals
             if colAttrs.length ==0
-                for v, valAttr of valAttrs
+                for own v, valAttr of valAttrs
                     th = document.createElement("th")
                     th.className = "pvtTotalLabel"
                     th.innerHTML = valAttr
+                    console.log valAttr
                     tr.appendChild th
             tr.appendChild th
 
             result.appendChild tr
 
-        console.log 'fim'
         #now the actual data rows, with their row headers and totals
-        console.log '#now the actual data rows, with their row headers and totals'
         for own i, rowKey of rowKeys
             tr = document.createElement("tr")
             for own j, txt of rowKey
@@ -536,25 +521,20 @@ callWithJQuery ($) ->
                     th = document.createElement("th")
                     th.className = "pvtRowLabel"
                     th.textContent = txt
-                    console.log "  #{txt}"
                     th.setAttribute("rowspan", x)
                     if parseInt(j) == rowAttrs.length-1 and colAttrs.length !=0
                         th.setAttribute("colspan",2)
                     tr.appendChild th
-            console.log '#this is the tight loop'
             for own j, colKey of colKeys #this is the tight loop
                 aggregator = pivotData.getAggregator(rowKey, colKey)
                 val = aggregator.value()
                 multiValues = if aggregator.multivalue then aggregator.multivalue() else undefined
-                console.log 'init multivalue'
                 for own m, valAttr of valAttrs
                     td = document.createElement("td")
                     td.className = "pvtVal row#{i} col#{j}"
                     if multiValues then td.textContent = aggregator.format(multiValues[valAttr]) else td.textContent = ''
-                    console.log "  #{td.textContent}"
                     td.setAttribute("data-value", val)
                     tr.appendChild td
-                console.log 'fim multivalue'
 
             totalAggregator = pivotData.getAggregator(rowKey, [])
             multiValues = if totalAggregator.multivalue then totalAggregator.multivalue() else undefined
@@ -562,7 +542,6 @@ callWithJQuery ($) ->
                 td = document.createElement("td")
                 td.className = "pvtTotal rowTotal"
                 if multiValues then td.textContent = totalAggregator.format(multiValues[valAttr]) else td.textContent = ''
-                console.log "  #{td.textContent}"
                 td.setAttribute("data-value", val)
                 tr.appendChild td
             result.appendChild tr
