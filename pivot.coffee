@@ -293,6 +293,7 @@ callWithJQuery ($) ->
             @colTotals = {}
             @allTotal = @aggregator(this, [], [])
             @sorted = false
+            @labels = opts.labels
 
             # iterate through input, accumulating data for cells
             PivotData.forEachRecord input, opts.derivedAttributes, (record) =>
@@ -419,6 +420,7 @@ callWithJQuery ($) ->
         rowKeys = pivotData.getRowKeys()
         colKeys = pivotData.getColKeys()
         valAttrs = pivotData.valAttrs
+        labels = pivotData.labels
 
         #now actually build the output
         result = document.createElement("table")
@@ -452,14 +454,14 @@ callWithJQuery ($) ->
                 tr.appendChild th
             th = document.createElement("th")
             th.className = "pvtAxisLabel"
-            th.textContent = c
+            th.textContent = labels[c]
             tr.appendChild th
             for own i, colKey of colKeys
                 x = spanSize(colKeys, parseInt(i), parseInt(j))
                 if x != -1
                     th = document.createElement("th")
                     th.className = "pvtColLabel"
-                    th.textContent = colKey[j]
+                    th.textContent = labels[colKey[j]]
                     th.setAttribute("colspan", (x * valAttrs.length))
                     if parseInt(j) == colAttrs.length-1 and rowAttrs.length != 0 and valAttrs.length == 0
                         th.setAttribute("rowspan", 2)
@@ -478,7 +480,7 @@ callWithJQuery ($) ->
                     for own m, valAttr of valAttrs
                         th = document.createElement("th")
                         th.className = "pvtColLabel"
-                        th.textContent = valAttr
+                        th.textContent = labels[valAttr]
                         th.setAttribute("colspan", 1)
                         th.setAttribute("rowspan", 2)
                         tr.appendChild th
@@ -498,14 +500,14 @@ callWithJQuery ($) ->
             for own i, r of rowAttrs
                 th = document.createElement("th")
                 th.className = "pvtAxisLabel"
-                th.textContent = r
+                th.textContent = labels[r]
                 tr.appendChild th
             th = document.createElement("th")
             if colAttrs.length ==0
                 for own v, valAttr of valAttrs
                     th = document.createElement("th")
                     th.className = "pvtTotalLabel"
-                    th.innerHTML = valAttr
+                    th.innerHTML = labels[valAttr]
                     console.log valAttr
                     tr.appendChild th
             tr.appendChild th
@@ -602,6 +604,7 @@ callWithJQuery ($) ->
             localeStrings: locales.en.localeStrings
 
         opts = $.extend defaults, opts
+        console.log opts
 
         result = null
         try

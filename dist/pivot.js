@@ -579,6 +579,7 @@
         this.colTotals = {};
         this.allTotal = this.aggregator(this, [], []);
         this.sorted = false;
+        this.labels = opts.labels;
         PivotData.forEachRecord(input, opts.derivedAttributes, (function(_this) {
           return function(record) {
             if (opts.filter(record)) {
@@ -784,7 +785,7 @@
     Default Renderer for hierarchical table layout
      */
     pivotTableRenderer = function(pivotData, opts) {
-      var aggregator, c, colAttrs, colKey, colKeys, defaults, i, j, m, multiValues, r, result, rowAttrs, rowKey, rowKeys, spanSize, td, th, totalAggregator, tr, txt, v, val, valAttr, valAttrs, x;
+      var aggregator, c, colAttrs, colKey, colKeys, defaults, i, j, labels, m, multiValues, r, result, rowAttrs, rowKey, rowKeys, spanSize, td, th, totalAggregator, tr, txt, v, val, valAttr, valAttrs, x;
       defaults = {
         localeStrings: {
           totals: "Totals"
@@ -796,6 +797,7 @@
       rowKeys = pivotData.getRowKeys();
       colKeys = pivotData.getColKeys();
       valAttrs = pivotData.valAttrs;
+      labels = pivotData.labels;
       result = document.createElement("table");
       result.className = "pvtTable";
       spanSize = function(arr, i, j) {
@@ -838,7 +840,7 @@
         }
         th = document.createElement("th");
         th.className = "pvtAxisLabel";
-        th.textContent = c;
+        th.textContent = labels[c];
         tr.appendChild(th);
         for (i in colKeys) {
           if (!hasProp.call(colKeys, i)) continue;
@@ -847,7 +849,7 @@
           if (x !== -1) {
             th = document.createElement("th");
             th.className = "pvtColLabel";
-            th.textContent = colKey[j];
+            th.textContent = labels[colKey[j]];
             th.setAttribute("colspan", x * valAttrs.length);
             if (parseInt(j) === colAttrs.length - 1 && rowAttrs.length !== 0 && valAttrs.length === 0) {
               th.setAttribute("rowspan", 2);
@@ -870,7 +872,7 @@
               valAttr = valAttrs[m];
               th = document.createElement("th");
               th.className = "pvtColLabel";
-              th.textContent = valAttr;
+              th.textContent = labels[valAttr];
               th.setAttribute("colspan", 1);
               th.setAttribute("rowspan", 2);
               tr.appendChild(th);
@@ -893,7 +895,7 @@
           r = rowAttrs[i];
           th = document.createElement("th");
           th.className = "pvtAxisLabel";
-          th.textContent = r;
+          th.textContent = labels[r];
           tr.appendChild(th);
         }
         th = document.createElement("th");
@@ -903,7 +905,7 @@
             valAttr = valAttrs[v];
             th = document.createElement("th");
             th.className = "pvtTotalLabel";
-            th.innerHTML = valAttr;
+            th.innerHTML = labels[valAttr];
             console.log(valAttr);
             tr.appendChild(th);
           }
@@ -1029,6 +1031,7 @@
         localeStrings: locales.en.localeStrings
       };
       opts = $.extend(defaults, opts);
+      console.log(opts);
       result = null;
       try {
         pivotData = new PivotData(input, opts);
