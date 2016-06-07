@@ -294,6 +294,7 @@ callWithJQuery ($) ->
             @allTotal = @aggregator(this, [], [])
             @sorted = false
             @labels = opts.labels
+            @filterFun = opts.filterFun
 
             # iterate through input, accumulating data for cells
             PivotData.forEachRecord input, opts.derivedAttributes, (record) =>
@@ -421,6 +422,7 @@ callWithJQuery ($) ->
         colKeys = pivotData.getColKeys()
         valAttrs = pivotData.valAttrs
         labels = pivotData.labels
+        filterFun = pivotData.filterFun
 
         #now actually build the output
         result = document.createElement("table")
@@ -501,6 +503,8 @@ callWithJQuery ($) ->
                 th = document.createElement("th")
                 th.className = "pvtAxisLabel"
                 th.textContent = labels[r]
+                th.onclick = ->
+                    filterFun(r)
                 tr.appendChild th
             th = document.createElement("th")
             if colAttrs.length ==0
@@ -604,7 +608,6 @@ callWithJQuery ($) ->
             localeStrings: locales.en.localeStrings
 
         opts = $.extend defaults, opts
-        console.log opts
 
         result = null
         try

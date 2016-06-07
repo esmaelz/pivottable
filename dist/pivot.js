@@ -580,6 +580,7 @@
         this.allTotal = this.aggregator(this, [], []);
         this.sorted = false;
         this.labels = opts.labels;
+        this.filterFun = opts.filterFun;
         PivotData.forEachRecord(input, opts.derivedAttributes, (function(_this) {
           return function(record) {
             if (opts.filter(record)) {
@@ -785,7 +786,7 @@
     Default Renderer for hierarchical table layout
      */
     pivotTableRenderer = function(pivotData, opts) {
-      var aggregator, c, colAttrs, colKey, colKeys, defaults, i, j, labels, m, multiValues, r, result, rowAttrs, rowKey, rowKeys, spanSize, td, th, totalAggregator, tr, txt, v, val, valAttr, valAttrs, x;
+      var aggregator, c, colAttrs, colKey, colKeys, defaults, filterFun, i, j, labels, m, multiValues, r, result, rowAttrs, rowKey, rowKeys, spanSize, td, th, totalAggregator, tr, txt, v, val, valAttr, valAttrs, x;
       defaults = {
         localeStrings: {
           totals: "Totals"
@@ -798,6 +799,7 @@
       colKeys = pivotData.getColKeys();
       valAttrs = pivotData.valAttrs;
       labels = pivotData.labels;
+      filterFun = pivotData.filterFun;
       result = document.createElement("table");
       result.className = "pvtTable";
       spanSize = function(arr, i, j) {
@@ -896,6 +898,9 @@
           th = document.createElement("th");
           th.className = "pvtAxisLabel";
           th.textContent = labels[r];
+          th.onclick = function() {
+            return filterFun(r);
+          };
           tr.appendChild(th);
         }
         th = document.createElement("th");
@@ -1031,7 +1036,6 @@
         localeStrings: locales.en.localeStrings
       };
       opts = $.extend(defaults, opts);
-      console.log(opts);
       result = null;
       try {
         pivotData = new PivotData(input, opts);

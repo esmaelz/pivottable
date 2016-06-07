@@ -26,6 +26,9 @@
         var sAggregator = $.pivotUtilities.aggregatorTemplates.sAggregator;
         var numberFormat = $.pivotUtilities.numberFormat;
         var intFormat = numberFormat({digitsAfterDecimal: 2});
+        var filterFun = function(field){
+            alert(field);
+        };
 
         // $.get("http://localhost:9000/api/budgets/4/resumo?token=0ee2918a5d8ff63aaea6136a",function(data){
             $("#output").pivot(
@@ -42,7 +45,8 @@
                     // cols: ["shape", "go"],
                     aggregator: sAggregator(intFormat)(["value", "profit"],["sum", "sum"]),
                     vals: ["value", "profit"],
-                    labels: {color: "Cor", shape: "Forma", go: "Go", value: "Valor", profit: "Lucro"}
+                    labels: {color: "Cor", shape: "Forma", go: "Go", value: "Valor", profit: "Lucro"},
+                    filterFun: filterFun
                 }
             );
             // var sAggregator = $.pivotUtilities.aggregatorTemplates.sAggregator;
