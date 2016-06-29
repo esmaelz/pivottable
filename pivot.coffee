@@ -503,8 +503,9 @@ callWithJQuery ($) ->
                 th = document.createElement("th")
                 th.className = "pvtAxisLabel"
                 th.textContent = labels[r]
-                th.onclick = ->
-                    filterFun(r)
+                th.setAttribute('data-attr', r)
+                th.onclick = (e)->
+                    filterFun(e.srcElement.getAttribute('data-attr'))
                 tr.appendChild th
             th = document.createElement("th")
             if colAttrs.length ==0

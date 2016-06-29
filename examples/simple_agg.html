@@ -41,7 +41,7 @@
                     {color: "blue", shape: "circle", go: "GA", value: 0, profit: 10}
                 ],
                 {
-                    rows: ["color"],
+                    rows: ["color", "shape"],
                     // cols: ["shape", "go"],
                     aggregator: sAggregator(intFormat)(["value", "profit"],["sum", "sum"]),
                     vals: ["value", "profit"],
